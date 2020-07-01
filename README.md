@@ -101,7 +101,7 @@ Join in the conversation on our [mailing list](https://groups.google.com/forum/?
 
 # Notes for techempower benchmarking system 
 
-- to upload the results use this ![link](https://www.techempower.com/benchmarks/#section=test)
+- to upload the results use this [link](https://www.techempower.com/benchmarks/#section=test)
 - in order to lunch the test in multiple machines create a new file in the path 
 
     /etc/systemd/system/docker.service.d/startup_options.conf 
