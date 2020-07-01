@@ -96,3 +96,39 @@ If you have a `results.json` file that you would like to visualize, you can [do 
 The community has consistently helped in making these tests better, and we welcome any and all changes. Reviewing our contribution practices and guidelines will help to keep us all on the same page. The [contribution guide](https://github.com/TechEmpower/FrameworkBenchmarks/wiki/Development-Contributing-Guide) can be found in the [TFB documentation](https://github.com/TechEmpower/FrameworkBenchmarks/wiki).
 
 Join in the conversation on our [mailing list](https://groups.google.com/forum/?fromgroups=#!forum/framework-benchmarks), on [Twitter](https://twitter.com/tfbenchmarks), or chat with us on [Freenode](https://webchat.freenode.net/) at `#techempower-fwbm`. 
+
+
+
+# Notes for techempower benchmarking system 
+
+- to upload the results use this ![link](https://www.techempower.com/benchmarks/#section=test)
+- in order to lunch the test in multiple machines create a new file in the path 
+
+    /etc/systemd/system/docker.service.d/startup_options.conf 
+
+```
+# /etc/systemd/system/docker.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376 -H tcp://0.0.0.0:2375
+```
+
+and then run restart the docker service using the following commands 
+
+    systemctl  daemon-reload
+    service restart docker 
+
+and then you can run your test using the following command 
+
+```
+    docker run \
+  --network=host \
+  --mount type=bind,source=/root/FrameworkBenchmarks,target=/FrameworkBenchmarks \
+  techempower/tfb \
+  --server-host 127.0.0.1 \
+  --database-host 127.0.0.1 \
+  --client-host 127.0.0.1 \
+  --network-mode host \
+  --quiet
+  
+```
