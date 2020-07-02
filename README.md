@@ -116,7 +116,8 @@ ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376 -H tcp://0.0.0.0:2375
 and then run restart the docker service using the following commands 
 
     systemctl  daemon-reload
-    service restart docker 
+    service  docker restart
+    service  docker status  
 
 and then you can run your test using the following command 
 

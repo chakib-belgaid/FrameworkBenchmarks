@@ -33,6 +33,7 @@ docker run \
   --database-host $TFB_DATABASE_HOST \
   --network-mode host \
   --results-name "$TFB_RUN_NAME" \
+  -e "HOSTNAME=$(cat /etc/hostname)" \
   --results-environment "$TFB_ENVIRONMENT" \
   --results-upload-uri "$TFB_UPLOAD_URI" \
   --quiet
