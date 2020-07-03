@@ -52,7 +52,7 @@ class Benchmarker:
         any_failed = False
         # Run tests
         log("Running Tests...", border='=')
-
+        self.docker_helper.start_hwpcsensor(collection=self.config.timestamp)
         # build wrk and all databases needed for current run
         self.docker_helper.build_wrk()
         self.docker_helper.build_databases()
@@ -75,14 +75,18 @@ class Benchmarker:
             self.results.parse(self.tests)
 
         self.results.set_completion_time()
+        self.docker_helper.stop_hwpcsensor()
+        self.docker_helper.run_smartwatts_formula(collection=self.config.timestamp)
         self.results.upload()
         self.results.finish()
+        
 
         return any_failed
 
     def stop(self, signal=None, frame=None):
         log("Shutting down (may take a moment)")
         self.docker_helper.stop()
+        self.docker_helper.stop_hwpcsensor()
         sys.exit(0)
 
     ##########################################################################################
