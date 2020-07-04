@@ -12,6 +12,7 @@ import math
 import csv
 import traceback
 from datetime import datetime
+import pymongo
 
 # Cross-platform colored text
 from colorama import Fore, Style
@@ -209,6 +210,17 @@ class Results:
                     timeout=300)
             except Exception:
                 log("Error uploading results.json")
+
+    def upload_mongo(self,database='techempower',collection='test10'): 
+        '''
+        Attempts to upload the results.json to a mongodb base
+        '''
+        col_name="times_"+collection
+        client = pymongo.MongoClient('172.16.45.8', 27017)
+        col = client['techempower'][col_name]
+        col.insert(self.rawData)
+        client.close()
+
 
     def load(self):
         '''

@@ -77,6 +77,7 @@ class Benchmarker:
         self.results.set_completion_time()
         self.docker_helper.stop_hwpcsensor()
         self.docker_helper.run_smartwatts_formula(collection=self.config.timestamp)
+        self.results.upload_mongo(collection=self.config.timestamp)
         self.results.upload()
         self.results.finish()
         
