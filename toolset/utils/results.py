@@ -202,7 +202,7 @@ class Results:
         col_name="times_"+collection
         client = pymongo.MongoClient('172.16.45.8', 27017)
         col = client['techempower'][col_name]
-        col.insert(self.rawData)
+        col.insert(self..__to_jsonable())
         client.close()
 
 
