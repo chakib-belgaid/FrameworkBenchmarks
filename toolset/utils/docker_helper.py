@@ -34,10 +34,10 @@ class DockerHelper:
         input_db=output_db=database
         input_col=collection
         output_col="power_"+collection
-        cpu_tdp=120
-        base_cpu_ratio=24
+        cpu_tdp=85
+        base_cpu_ratio=22
         min_cpu_ratio=12
-        max_cpu_ratio=33
+        max_cpu_ratio=31
         frequency=500
         container_name='powerapi-formula-'+collection
         container = self.client.containers.run("powerapi/smartwatts-formula:latest",
@@ -45,9 +45,28 @@ class DockerHelper:
                 privileged=True,
                 network="host",
                 detach=True,
-                auto_remove=True,
+                auto_remove=False,
                 command='''
                 --input mongodb --model HWPCReport  -u "mongodb://172.16.45.8:27017" -d {} -c {} --output mongodb --name power --model PowerReport  -u "mongodb://172.16.45.8:27017" -d {} -c {}  --output mongodb --name formula --model FormulaReport  -u "mongodb://172.16.45.8:27017" -d {} -c frep_{}  --formula smartwatts --cpu-ratio-base {}  --cpu-ratio-min {}  --cpu-ratio-max {} --sensor-reports-frequency {} --cpu-tdp {}  --cpu-error-threshold 2.0  --dram-error-threshold 2.0 '''.format(input_db,input_col,output_db,output_col,output_db,collection,base_cpu_ratio,min_cpu_ratio,max_cpu_ratio,frequency,cpu_tdp)
+                )
+
+    def run_rapl_formula(self,database='techempower',collection='test10'):
+        '''
+        transform the rapl data into power
+        '''
+        input_db=output_db=database
+        input_col=collection
+        output_col="rapl_"+collection
+        container_name='powerapi-formula-'+collection
+        container = self.client.containers.run("powerapi/rapl-formula:latest",
+                name=container_name,
+                privileged=True,
+                network="host",
+                detach=True,
+                auto_remove=False,
+                command='''
+            --input mongodb -u "mongodb://172.16.45.8:27017" -d {} -c {} \
+            --output mongodb -u "mongodb://172.16.45.8:27017" -d {} -c {} '''.format(input_db,input_col,output_db,output_col)
                 )
 
             
