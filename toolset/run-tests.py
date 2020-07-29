@@ -171,7 +171,7 @@ def main(argv=None):
         default='tfb-database',
         help='Hostname/IP for database server')
     parser.add_argument(
-        '--client-host', default='', help='Hostname/IP for client server')
+        '--client-host', default=[],nargs="+", help='a list of Hostname/IPs for client servers')
     parser.add_argument(
         '--concurrency-levels',
         nargs='+',

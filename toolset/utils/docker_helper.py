@@ -8,6 +8,7 @@ import traceback
 from threading import Thread
 from colorama import Fore, Style
 
+
 from toolset.utils.output_helper import log
 from toolset.databases import databases
 
@@ -20,8 +21,8 @@ class DockerHelper:
     def __init__(self, benchmarker=None):
         self.benchmarker = benchmarker
 
-        self.client = docker.DockerClient(
-            base_url=self.benchmarker.config.client_docker_host)
+        self.client =[ docker.DockerClient(
+            base_url=i) for i in self.benchmarker.config.client_docker_host]
         self.server = docker.DockerClient(
             base_url=self.benchmarker.config.server_docker_host)
         self.database = docker.DockerClient(
@@ -40,7 +41,7 @@ class DockerHelper:
         max_cpu_ratio=31
         frequency=500
         container_name='powerapi-formula-'+collection
-        container = self.client.containers.run("powerapi/smartwatts-formula:latest",
+        container = self.client[0].containers.run("powerapi/smartwatts-formula:latest",
                 name=container_name,
                 privileged=True,
                 network="host",
@@ -58,7 +59,7 @@ class DockerHelper:
         input_col=collection
         output_col="rapl_"+collection
         container_name='powerapi-formula-'+collection
-        container = self.client.containers.run("powerapi/rapl-formula:latest",
+        container = self.client[0].containers.run("powerapi/rapl-formula:latest",
                 name=container_name,
                 privileged=True,
                 network="host",
@@ -359,13 +360,15 @@ class DockerHelper:
             DockerHelper.__stop_all(self.server)
             if is_multi_setup:
                 DockerHelper.__stop_all(self.database)
-                DockerHelper.__stop_all(self.client)
+                for client in self.client :
+                    DockerHelper.__stop_all(client)
 
         self.database.containers.prune()
         if is_multi_setup:
             # Then we're on a 3 machine set up
             self.server.containers.prune()
-            self.client.containers.prune()
+            for client in self.client :
+                client.containers.prune()
 
     def build_databases(self):
         '''
@@ -435,29 +438,31 @@ class DockerHelper:
         '''
         Builds the techempower/tfb.wrk container
         '''
-        self.__build(
-            base_url=self.benchmarker.config.client_docker_host,
-            path=self.benchmarker.config.wrk_root,
-            dockerfile="wrk.dockerfile",
-            log_prefix="wrk: ",
-            build_log_file=os.devnull,
-            tag="techempower/tfb.wrk")
+        for client in self.benchmarker.config.client_docker_host : 
+            self.__build(
+                base_url=client,
+                path=self.benchmarker.config.wrk_root,
+                dockerfile="wrk.dockerfile",
+                log_prefix="wrk: ",
+                build_log_file=os.devnull,
+                tag="techempower/tfb.wrk")
 
     def test_client_connection(self, url):
         '''
         Tests that the app server at the given url responds successfully to a
         request.
         '''
-        try:
-            self.client.containers.run(
-                'techempower/tfb.wrk',
-                'curl --fail --max-time 5 %s' % url,
-                remove=True,
-                log_config={'type': None},
-                network=self.benchmarker.config.network,
-                network_mode=self.benchmarker.config.network_mode)
-        except Exception:
-            return False
+        for client in self.client :
+            try:
+                client.containers.run(
+                    'techempower/tfb.wrk',
+                    'curl --fail --max-time 5 %s' % url,
+                    remove=True,
+                    log_config={'type': None},
+                    network=self.benchmarker.config.network,
+                    network_mode=self.benchmarker.config.network_mode)
+            except Exception:
+                return False
 
         return True
 
@@ -473,6 +478,24 @@ class DockerHelper:
 
     def benchmark(self, script, variables, raw_file):
         '''
+        Runs the given remote_script on the wrk container multiple client machines.
+        '''
+        # self._benchmark(self.client[0], script, variables, raw_file)
+        tt=[]
+        for client in self.client : 
+            t=Thread(target=self._benchmark,args=(client,script,variables,raw_file))
+            t.daemon =False
+            tt.append(t)
+            t.start()
+
+        for t in tt : 
+            t.join()
+        return True
+
+
+    # @staticmethod
+    def  _benchmark(self,client, script, variables, raw_file):
+        '''
         Runs the given remote_script on the wrk container on the client machine.
         '''
 
@@ -484,9 +507,8 @@ class DockerHelper:
         sysctl = {'net.core.somaxconn': 65535}
 
         ulimit = [{'name': 'nofile', 'hard': 65535, 'soft': 65535}]
-
         watch_container(
-            self.client.containers.run(
+            client.containers.run(
                 "techempower/tfb.wrk",
                 "/bin/bash /%s" % script,
                 environment=variables,

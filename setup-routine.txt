@@ -1,0 +1,30 @@
+# server : 
+
+docker build -t techempower/tfb . 
+
+# all machines 
+
+echo '# /etc/systemd/system/docker.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376 -H tcp://0.0.0.0:2375 ' > /etc/systemd/system/docker.service.d/startup_options.conf 
+systemctl  daemon-reload
+service  docker restart
+ip addr |egrep inet.*br0
+
+
+--client-host 172.16.37.5 \
+
+
+    docker run \
+    --rm \
+  --network=host \
+  --mount type=bind,source=/home/mbelgaid/FrameworkBenchmarks,target=/FrameworkBenchmarks \
+  techempower/tfb \
+  --server-host 172.16.37.2 \
+  --database-host 172.16.37.13 \
+  --client-host 172.16.37.5 172.16.37.1  \
+  --network-mode host \
+  --type query \
+  --duration 20 \
+  --test aiohttp 

@@ -33,7 +33,7 @@ class Results:
         except OSError:
             pass
         self.file = os.path.join(self.directory, "results.json")
-
+        self.client_numbers=len(self.config.client_docker_host)
         self.uuid = str(uuid.uuid4())
         self.name = datetime.now().strftime(self.config.results_name)
         self.environmentDescription = self.config.results_environment
@@ -47,8 +47,8 @@ class Results:
             self.git = None
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
-        self.concurrencyLevels = self.config.concurrency_levels
-        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels
+        self.concurrencyLevels = self.config.concurrency_levels * len(self.config.client_docker_host)
+        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels * len(self.config.client_docker_host)
         self.queryIntervals = self.config.query_levels
         self.cachedQueryIntervals = self.config.cached_query_levels
         self.frameworks = [t.name for t in benchmarker.tests]
@@ -202,7 +202,7 @@ class Results:
         col_name="times_"+collection
         client = pymongo.MongoClient('172.16.45.8', 27017)
         col = client['techempower'][col_name]
-        col.insert(self..__to_jsonable())
+        col.insert(self.__to_jsonable())
         client.close()
 
 
@@ -328,6 +328,7 @@ class Results:
         toRet['frameworks'] = self.frameworks
         toRet['duration'] = self.duration
         toRet['rawData'] = self.rawData
+        toRet['client_numbers']=self.client_numbers
         toRet['completed'] = self.completed
         toRet['succeeded'] = self.succeeded
         toRet['failed'] = self.failed
