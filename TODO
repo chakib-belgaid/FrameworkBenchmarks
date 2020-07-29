@@ -1,5 +1,6 @@
 # Multiple Clients 
 
-- [ ]  change one client to a list 
-- [ ] launch multiple clients at the same time 
-- [ ] update the reporting 
+- [X]  change one client to a list 
+- [X] launch multiple clients at the same time 
+- [X] update the reporting 
+- [ ] clean the sleep verify methode 

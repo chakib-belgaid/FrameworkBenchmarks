@@ -99,7 +99,7 @@ class Results:
                 is_warmup = True
                 rawData = None
                 for line in raw_data:
-                    if "Queries:" in line or "Concurrency:" in line:
+                    if "Queries:" in line or "Concurrency:" in line or "Sleep" in line :
                         is_warmup = False
                         rawData = None
                         continue

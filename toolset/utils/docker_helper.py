@@ -484,7 +484,7 @@ class DockerHelper:
         tt=[]
         for client in self.client : 
             t=Thread(target=self._benchmark,args=(client,script,variables,raw_file))
-            t.daemon =False
+            t.daemon =True 
             tt.append(t)
             t.start()
 
