@@ -28,3 +28,4 @@ ENV max_concurrency max_concurrency
 ENV max_threads max_threads
 ENV pipeline pipeline
 ENV accept accept
+ENV client client

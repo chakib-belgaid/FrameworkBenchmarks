@@ -21,10 +21,11 @@ ip addr |egrep inet.*br0
   --network=host \
   --mount type=bind,source=/home/mbelgaid/FrameworkBenchmarks,target=/FrameworkBenchmarks \
   techempower/tfb \
-  --server-host 172.16.37.2 \
-  --database-host 172.16.37.13 \
-  --client-host 172.16.37.5 172.16.37.1  \
+  --server-host 172.16.37.13 \
+  --database-host 172.16.37.9 \
+  --client-host 172.16.37.8 172.16.37.6 172.16.37.2  \
   --network-mode host \
   --type query \
-  --duration 20 \
-  --test aiohttp 
+  --duration 10 \
+  --concurrency-levels 1 2 10 20 30 50 100 200 300 400 500 \
+  --test-dir Python/flask 

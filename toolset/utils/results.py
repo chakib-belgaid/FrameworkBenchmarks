@@ -47,8 +47,8 @@ class Results:
             self.git = None
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
-        self.concurrencyLevels = self.config.concurrency_levels * len(self.config.client_docker_host)
-        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels * len(self.config.client_docker_host)
+        self.concurrencyLevels = self.config.concurrency_levels 
+        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels 
         self.queryIntervals = self.config.query_levels
         self.cachedQueryIntervals = self.config.cached_query_levels
         self.frameworks = [t.name for t in benchmarker.tests]

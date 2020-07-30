@@ -9,6 +9,7 @@ echo "---------------------------------------------------------"
 echo ""
 STARTTIME=$(date +"%s")
 sleep $duration
+echo "1 requests in " $duration
 echo "STARTTIME $STARTTIME"
 echo "ENDTIME $(date +"%s")"
 

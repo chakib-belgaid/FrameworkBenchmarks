@@ -21,8 +21,8 @@ class DockerHelper:
     def __init__(self, benchmarker=None):
         self.benchmarker = benchmarker
 
-        self.client =[ docker.DockerClient(
-            base_url=i) for i in self.benchmarker.config.client_docker_host]
+        self.client =[docker.DockerClient(
+            base_url=i ) for i in self.benchmarker.config.client_docker_host]
         self.server = docker.DockerClient(
             base_url=self.benchmarker.config.server_docker_host)
         self.database = docker.DockerClient(
@@ -483,7 +483,10 @@ class DockerHelper:
         # self._benchmark(self.client[0], script, variables, raw_file)
         tt=[]
         for client in self.client : 
-            t=Thread(target=self._benchmark,args=(client,script,variables,raw_file))
+            newfile=client.api.base_url
+            # newfile=newfile.replace('http//','')
+            newfile=raw_file+newfile.split(':')[1][2:]
+            t=Thread(target=self._benchmark,args=(client,script,variables,newfile))
             t.daemon =True 
             tt.append(t)
             t.start()
@@ -505,7 +508,7 @@ class DockerHelper:
                     log(line, file=benchmark_file)
 
         sysctl = {'net.core.somaxconn': 65535}
-
+        variables['client']=client.api.base_url
         ulimit = [{'name': 'nofile', 'hard': 65535, 'soft': 65535}]
         watch_container(
             client.containers.run(
