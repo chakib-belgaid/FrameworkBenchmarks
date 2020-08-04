@@ -33,7 +33,7 @@ class Results:
         except OSError:
             pass
         self.file = os.path.join(self.directory, "results.json")
-        self.client_numbers=len(self.config.client_docker_host)
+        self.client_numbers = len(self.config.client_docker_host)
         self.uuid = str(uuid.uuid4())
         self.name = datetime.now().strftime(self.config.results_name)
         self.environmentDescription = self.config.results_environment
@@ -43,12 +43,12 @@ class Results:
             self.git['repositoryUrl'] = self.__get_git_repository_url()
             self.git['branchName'] = self.__get_git_branch_name()
         except Exception:
-            #Could not read local git repository, which is fine.
+            # Could not read local git repository, which is fine.
             self.git = None
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
-        self.concurrencyLevels = self.config.concurrency_levels 
-        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels 
+        self.concurrencyLevels = self.config.concurrency_levels
+        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels
         self.queryIntervals = self.config.query_levels
         self.cachedQueryIntervals = self.config.cached_query_levels
         self.frameworks = [t.name for t in benchmarker.tests]
@@ -91,7 +91,7 @@ class Results:
         results = dict()
         results['results'] = []
         stats = []
-
+        self._merge_raw_files( framework_test, test_type)
         if os.path.exists(self.get_raw_file(framework_test.name, test_type)):
             with open(self.get_raw_file(framework_test.name,
                                         test_type)) as raw_data:
@@ -99,7 +99,7 @@ class Results:
                 is_warmup = True
                 rawData = None
                 for line in raw_data:
-                    if "Queries:" in line or "Concurrency:" in line or "Sleep" in line :
+                    if "Queries:" in line or "Concurrency:" in line or "Sleep" in line:
                         is_warmup = False
                         rawData = None
                         continue
@@ -195,16 +195,15 @@ class Results:
             except Exception:
                 log("Error uploading results.json")
 
-    def upload_mongo(self,database='techempower',collection='test10'): 
+    def upload_mongo(self, database='techempower', collection='test10'):
         '''
         Attempts to upload the results.json to a mongodb base
         '''
-        col_name="times_"+collection
+        col_name = "times_"+collection
         client = pymongo.MongoClient('172.16.45.8', 27017)
         col = client['techempower'][col_name]
         col.insert(self.__to_jsonable())
         client.close()
-
 
     def load(self):
         '''
@@ -328,7 +327,7 @@ class Results:
         toRet['frameworks'] = self.frameworks
         toRet['duration'] = self.duration
         toRet['rawData'] = self.rawData
-        toRet['client_numbers']=self.client_numbers
+        toRet['client_numbers'] = self.client_numbers
         toRet['completed'] = self.completed
         toRet['succeeded'] = self.succeeded
         toRet['failed'] = self.failed
@@ -365,7 +364,8 @@ class Results:
 
             log("Running \"%s\" (cwd=%s)" % (command, wd))
             try:
-                line_count = int(subprocess.check_output(command, cwd=wd, shell=True))
+                line_count = int(subprocess.check_output(
+                    command, cwd=wd, shell=True))
             except (subprocess.CalledProcessError, ValueError) as e:
                 log("Unable to count lines of code for %s due to error '%s'" %
                     (framework, e))
@@ -561,3 +561,17 @@ class Results:
                 }
             display_stat_collection[header] = display_stat
         return display_stat
+
+    def _merge_raw_files(self, framework_test, test_type):
+        path = os.path.join(self.directory, framework_test.name, test_type, "raw.txt")
+        clients =self.benchmarker.docker_helper.client
+        with open(path,'w' )as raw_file:
+            for client in clients : 
+                client_raw_file=client.api.base_url
+                client_raw_file=path+client_raw_file.split(':')[1][2:]
+                with open (client_raw_file,'r') as client_data : 
+                    for line in client_data.readlines():
+                        raw_file.writelines(line)
+
+
+
