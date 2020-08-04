@@ -19,7 +19,7 @@ mem_limit = int(round(virtual_memory().total * .95))
 class DockerHelper:
     def __init__(self, benchmarker=None):
         self.benchmarker = benchmarker
-
+        self.config=self.benchmarker.config
         self.client = docker.DockerClient(
             base_url=self.benchmarker.config.client_docker_host)
         self.server = docker.DockerClient(
@@ -27,11 +27,11 @@ class DockerHelper:
         self.database = docker.DockerClient(
             base_url=self.benchmarker.config.database_docker_host)
 
-    def run_smartwatts_formula(self,database='techempower',collection='test10'):
+    def run_smartwatts_formula(self,collection='test10'):
         '''
         transform the rapl data into power
         '''
-        input_db=output_db=database
+        input_db=output_db=self.config.mongo_database
         input_col=collection
         output_col="power_"+collection
         cpu_tdp=85
@@ -47,14 +47,14 @@ class DockerHelper:
                 detach=True,
                 auto_remove=False,
                 command='''
-                --input mongodb --model HWPCReport  -u "mongodb://172.16.45.8:27017" -d {} -c {} --output mongodb --name power --model PowerReport  -u "mongodb://172.16.45.8:27017" -d {} -c {}  --output mongodb --name formula --model FormulaReport  -u "mongodb://172.16.45.8:27017" -d {} -c frep_{}  --formula smartwatts --cpu-ratio-base {}  --cpu-ratio-min {}  --cpu-ratio-max {} --sensor-reports-frequency {} --cpu-tdp {}  --cpu-error-threshold 2.0  --dram-error-threshold 2.0 '''.format(input_db,input_col,output_db,output_col,output_db,collection,base_cpu_ratio,min_cpu_ratio,max_cpu_ratio,frequency,cpu_tdp)
+                --input mongodb --model HWPCReport  -u "mongodb://{}:{}" -d {} -c {} --output mongodb --name power --model PowerReport  -u "mongodb://{}:{}" -d {} -c {}  --output mongodb --name formula --model FormulaReport  -u "mongodb://{}:{}" -d {} -c frep_{}  --formula smartwatts --cpu-ratio-base {}  --cpu-ratio-min {}  --cpu-ratio-max {} --sensor-reports-frequency {} --cpu-tdp {}  --cpu-error-threshold 2.0  --dram-error-threshold 2.0 '''.format(self.config.mongo_url,self.config.mongo_port,input_db,input_col,self.config.mongo_url,self.config.mongo_port,output_db,output_col,output_db,collection,base_cpu_ratio,min_cpu_ratio,max_cpu_ratio,frequency,cpu_tdp)
                 )
 
-    def run_rapl_formula(self,database='techempower',collection='test10'):
+    def run_rapl_formula(self,collection='test10'):
         '''
         transform the rapl data into power
         '''
-        input_db=output_db=database
+        input_db=output_db=self.config.mongo_database
         input_col=collection
         output_col="rapl_"+collection
         container_name='powerapi-formula-'+collection
@@ -65,8 +65,8 @@ class DockerHelper:
                 detach=True,
                 auto_remove=False,
                 command='''
-            --input mongodb -u "mongodb://172.16.45.8:27017" -d {} -c {} \
-            --output mongodb -u "mongodb://172.16.45.8:27017" -d {} -c {} '''.format(input_db,input_col,output_db,output_col)
+            --input mongodb -u "mongodb://{}:{}" -d {} -c {} \
+            --output mongodb -u "mongodb://{}:{}" -d {} -c {} '''.format(self.config.mongo_url,self.config.mongo_port,input_db,input_col,self.config.mongo_url,self.config.mongo_port,output_db,output_col)
                 )
 
             
@@ -80,7 +80,7 @@ class DockerHelper:
         container = self.server.containers.get(self.hwpc_container_name)
         container.stop()
 
-    def start_hwpcsensor(self,database='techempower',collection='test10') :
+    def start_hwpcsensor(self,collection='test10') :
         '''
         Start the hwpc sensor dans the server machine 
         '''
@@ -97,7 +97,7 @@ class DockerHelper:
                     "/var/lib/docker/containers":{'bind':"/var/lib/docker/containers",'mode':'ro'},
                     "/tmp/powerapi-sensor-reporting":{'bind':"/reporting",'mode':'rw'},
                 },
-                command='''-n {}  -f 500  -r "mongodb" -U "mongodb://172.16.45.8:27017" -D {} -C {}  -s "rapl" -o -e "RAPL_ENERGY_PKG" -e "RAPL_ENERGY_DRAM"  -s "msr" -e "TSC" -e "APERF" -e "MPERF"  -c "core" -e "CPU_CLK_THREAD_UNHALTED:REF_P" -e "CPU_CLK_THREAD_UNHALTED:THREAD_P"  -e "LLC_MISSES" -e "INSTRUCTIONS_RETIRED" '''.format(name,database,collection)
+                command='''-n {}  -f 500  -r "mongodb" -U "mongodb://{}:{}" -D {} -C {}  -s "rapl" -o -e "RAPL_ENERGY_PKG" -e "RAPL_ENERGY_DRAM"  -s "msr" -e "TSC" -e "APERF" -e "MPERF"  -c "core" -e "CPU_CLK_THREAD_UNHALTED:REF_P" -e "CPU_CLK_THREAD_UNHALTED:THREAD_P"  -e "LLC_MISSES" -e "INSTRUCTIONS_RETIRED" '''.format(self.config.mongo_url,self.config.mongo_port,name,self.config.mongo_url,self.config.mongo_database,collection)
         )
 
 

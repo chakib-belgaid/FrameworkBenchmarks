@@ -47,10 +47,10 @@ class Results:
             self.git = None
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
-        self.concurrencyLevels = self.config.concurrency_levels
-        self.pipelineConcurrencyLevels = self.config.pipeline_concurrency_levels
-        self.queryIntervals = self.config.query_levels
-        self.cachedQueryIntervals = self.config.cached_query_levels
+        self.concurrencyLevels = [0]+ self.config.concurrency_levels
+        self.pipelineConcurrencyLevels = [0]+ self.config.pipeline_concurrency_levels
+        self.queryIntervals = [0]+ self.config.query_levels
+        self.cachedQueryIntervals = [0]+ self.config.cached_query_levels
         self.frameworks = [t.name for t in benchmarker.tests]
         self.duration = self.config.duration
         self.rawData = dict()
@@ -105,6 +105,17 @@ class Results:
                         continue
                     if "Warmup" in line or "Primer" in line:
                         is_warmup = True
+                        continue
+                    if "Idle" in line:
+                        is_warmup = False
+                        rawData = None
+                        rawData = dict()
+                        results['results'].append(rawData)
+                        rawData['latencyAvg'] = 0
+                        rawData['latencyStdev'] = 0
+                        rawData['latencyMax'] = 0
+                        rawData['totalRequests'] = 1
+
                         continue
                     if not is_warmup:
                         if rawData is None:
@@ -200,9 +211,9 @@ class Results:
         Attempts to upload the results.json to a mongodb base
         '''
         col_name="times_"+collection
-        client = pymongo.MongoClient('172.16.45.8', 27017)
-        col = client['techempower'][col_name]
-        col.insert(self..__to_jsonable())
+        client = pymongo.MongoClient(self.config.mong_url, self.config.mongo_port)
+        col = client[self.config.mongo_database][col_name]
+        col.insert(self.__to_jsonable())
         client.close()
 
 

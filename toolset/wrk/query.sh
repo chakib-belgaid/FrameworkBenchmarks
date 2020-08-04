@@ -19,6 +19,19 @@ echo ""
 wrk -H "Host: $server_host" -H "Accept: $accept" -H "Connection: keep-alive" --latency -d $duration -c $max_concurrency --timeout 8 -t $max_threads "${url}2"
 sleep 5
 
+
+echo ""
+echo "---------------------------------------------------------"
+echo " Running Idle $name"
+echo " Duration $duration's'"
+echo "---------------------------------------------------------"
+echo ""
+STARTTIME=$(date +"%s")
+sleep $duration
+echo "STARTTIME $STARTTIME"
+echo "ENDTIME $(date +"%s")"
+
+
 for c in $levels
 do
 echo ""
