@@ -211,7 +211,7 @@ class Results:
         Attempts to upload the results.json to a mongodb base
         '''
         col_name="times_"+collection
-        client = pymongo.MongoClient(self.config.mong_url, self.config.mongo_port)
+        client = pymongo.MongoClient(self.config.mongo_url, self.config.mongo_port)
         col = client[self.config.mongo_database][col_name]
         col.insert(self.__to_jsonable())
         client.close()

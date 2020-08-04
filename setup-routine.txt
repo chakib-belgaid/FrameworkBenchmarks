@@ -12,6 +12,7 @@ systemctl  daemon-reload
 service  docker restart
 ip addr |egrep inet.*br0
 
+--concurrency-levels 16 32 64 128 156 256
 
 --client-host 172.16.37.5 \
 
@@ -23,9 +24,9 @@ ip addr |egrep inet.*br0
   techempower/tfb \
   --server-host 172.16.37.5 \
   --database-host 172.16.37.4 \
-  --client-host 172.16.37.4  \
+  --client-host 172.16.37.2 \
   --network-mode host \
-  --test aiohttp \
-  --duration 3 \
-  --type db\
-  --concurrency-levels 16 32 
+  --duration 20 \
+  --test-dir Python/flask\
+  --concurrency-levels 10 20 50 100 150 200 250 300 350 400 \
+  

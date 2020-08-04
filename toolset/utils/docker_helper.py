@@ -97,7 +97,7 @@ class DockerHelper:
                     "/var/lib/docker/containers":{'bind':"/var/lib/docker/containers",'mode':'ro'},
                     "/tmp/powerapi-sensor-reporting":{'bind':"/reporting",'mode':'rw'},
                 },
-                command='''-n {}  -f 500  -r "mongodb" -U "mongodb://{}:{}" -D {} -C {}  -s "rapl" -o -e "RAPL_ENERGY_PKG" -e "RAPL_ENERGY_DRAM"  -s "msr" -e "TSC" -e "APERF" -e "MPERF"  -c "core" -e "CPU_CLK_THREAD_UNHALTED:REF_P" -e "CPU_CLK_THREAD_UNHALTED:THREAD_P"  -e "LLC_MISSES" -e "INSTRUCTIONS_RETIRED" '''.format(self.config.mongo_url,self.config.mongo_port,name,self.config.mongo_url,self.config.mongo_database,collection)
+                command='''-n {}  -f 500  -r "mongodb" -U "mongodb://{}:{}" -D {} -C {}  -s "rapl" -o -e "RAPL_ENERGY_PKG" -e "RAPL_ENERGY_DRAM"  -s "msr" -e "TSC" -e "APERF" -e "MPERF"  -c "core" -e "CPU_CLK_THREAD_UNHALTED:REF_P" -e "CPU_CLK_THREAD_UNHALTED:THREAD_P"  -e "LLC_MISSES" -e "INSTRUCTIONS_RETIRED" '''.format(name,self.config.mongo_url,self.config.mongo_port,self.config.mongo_database,collection)
         )
 
 
