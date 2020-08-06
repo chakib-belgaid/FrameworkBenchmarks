@@ -52,9 +52,11 @@ class BenchmarkConfig:
         self.database_docker_host = None
         self.client_docker_host = None
         self.network = None
-        self.mongo_url="172.16.45.8"
-        self.mongo_port=27017
-        self.mongo_database="techempower"
+
+        # mongo server 
+        self.mongo_url=args.mongo_url
+        self.mongo_port=args.mongo_port
+        self.mongo_database=args.mongo_database
 
         if self.network_mode is None:
             self.network = 'tfb'

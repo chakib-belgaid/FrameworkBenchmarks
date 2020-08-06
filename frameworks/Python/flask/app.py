@@ -16,7 +16,7 @@ from sqlalchemy.ext import baked
 if sys.version_info[0] == 3:
     xrange = range
 
-_is_pypy = hasattr(sys, 'pypy_version_info')
+_is_pypy = hasattr(sys, 'pypy_version_info') or ("pypy_version_info" in os.environ)
 
 DBDRIVER = 'mysql+pymysql' if _is_pypy else 'mysql'  # mysqlclient is slow on PyPy
 DBHOST = 'tfb-database'

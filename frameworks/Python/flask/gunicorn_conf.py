@@ -2,7 +2,9 @@ import multiprocessing
 import os
 import sys
 
-_is_pypy = hasattr(sys, 'pypy_version_info')
+# print ("pypy_version_info" in os.environ)
+
+_is_pypy = hasattr(sys, 'pypy_version_info') 
 _is_travis = os.environ.get('TRAVIS') == 'true'
 
 workers = multiprocessing.cpu_count() * 8
@@ -14,7 +16,7 @@ keepalive = 120
 errorlog = '-'
 pidfile = 'gunicorn.pid'
 
-if _is_pypy:
+if _is_pypy or ("pypy_version_info" in os.environ):
     worker_class = "tornado"
 else:
     worker_class = "meinheld.gmeinheld.MeinheldWorker"

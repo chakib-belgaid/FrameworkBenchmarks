@@ -1,5 +1,6 @@
 # server : 
 
+cd /home/mbelgaid/FrameworkBenchmarks
 docker build -t techempower/tfb . 
 
 # all machines 
@@ -22,11 +23,11 @@ ip addr |egrep inet.*br0
   --network=host \
   --mount type=bind,source=/home/mbelgaid/FrameworkBenchmarks,target=/FrameworkBenchmarks \
   techempower/tfb \
-  --server-host 172.16.37.5 \
-  --database-host 172.16.37.4 \
-  --client-host 172.16.37.2 \
+  --server-host 172.16.37.12 \
+  --database-host 172.16.37.9 \
+  --client-host 172.16.37.7 \
   --network-mode host \
   --duration 20 \
-  --test-dir Python/flask\
-  --concurrency-levels 10 20 50 100 150 200 250 300 350 400 \
+  --test-lang Python\
+  --concurrency-levels 10 20 50 100 150 200 250 300 350 400 
   

@@ -172,6 +172,7 @@ def main(argv=None):
         help='Hostname/IP for database server')
     parser.add_argument(
         '--client-host', default='', help='Hostname/IP for client server')
+
     parser.add_argument(
         '--concurrency-levels',
         nargs='+',
@@ -199,6 +200,15 @@ def main(argv=None):
         '--network-mode',
         default=None,
         help='The network mode to run docker in')
+
+    #reporter options 
+    parser.add_argument(
+        '--mongo-url', default='172.16.45.8', help='Hostname/IP for mongo server')
+    parser.add_argument(
+        '--mongo-port', default=27017,type=int, help='port of the mongo server ')
+    parser.add_argument(
+        '--mongo-database', default='techempower', help='the name of database used to store the logs')
+    
 
     args = parser.parse_args()
 
