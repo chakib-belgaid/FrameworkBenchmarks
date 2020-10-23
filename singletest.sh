@@ -11,6 +11,7 @@ setclients()
 clients=`cat /root/client_addrs.txt `
 setclients $clients
 
+
 docker run \
     --rm \
   --network=host \
@@ -20,9 +21,8 @@ docker run \
   --database-host $database_host \
   --client-host $client_host \
   --network-mode host \
+  --network-mode host \
   --duration 20 \
-  --mode verify \
+  --type db  query \
   --concurrency-levels 10 20 50 100 150 200 300 400 512 \
-  --test-lang PHP
-
-
+  --test $@
