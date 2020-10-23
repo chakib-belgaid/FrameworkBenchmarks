@@ -10,9 +10,26 @@
 using namespace li;
 
 template <typename B>
-void escape_html_entities(B& buffer, const std::string& data)
+void escape_html_entities(B& buffer, const std::string_view& data)
 {
-    for(size_t pos = 0; pos != data.size(); ++pos) {
+  size_t pos = 0;
+  auto search_for_special = [&] () {
+    size_t start = pos;
+    size_t end = pos;
+    for(;pos != data.size(); ++pos) {
+      char c = data[pos];
+      if (c > '>' || (c != '&' && c != '\"' && c != '\'' && c != '<' && c == '>'))
+        end = pos + 1;
+      else break;
+    }
+
+    if (start != end)
+      buffer << std::string_view(data.data() + start, end - start);
+  };
+  
+    for(; pos != data.size(); ++pos) {
+      search_for_special();
+      if (pos >= data.size()) return;
         switch(data[pos]) {
             case '&':  buffer << "&amp;";       break;
             case '\"': buffer << "&quot;";      break;
@@ -33,9 +50,28 @@ void siege(int port) {
   http_benchmark(sockets, 2, 1000, "GET /queries?N=20 HTTP/1.1\r\n\r\n");
   http_benchmark(sockets, 2, 1000, "GET /fortunes HTTP/1.1\r\n\r\n");
   http_benchmark(sockets, 2, 1000, "GET /updates?N=20 HTTP/1.1\r\n\r\n");
+  http_benchmark(sockets, 2, 1000, "GET /cached-world?N=100 HTTP/1.1\r\n\r\n");
   http_benchmark_close(sockets);
 }
 #endif
+
+template <typename T>
+struct cache {
+
+  void insert(T o) { 
+    buffer.push_back(o);
+  }
+
+  std::vector<const T*> get_array(const std::vector<int>& ids) const {
+    std::vector<const T*> res;
+    for (int i = 0; i < ids.size(); i++) res.push_back(&buffer[ids[i]]);
+    return res;
+  }
+
+  std::vector<T> buffer;
+};
+
+cache<decltype(mmm(s::id = int(), s::randomNumber = int()))> world_cache;
 
 int main(int argc, char* argv[]) {
 
@@ -112,12 +148,30 @@ int main(int argc, char* argv[]) {
     
     N = std::max(1, std::min(N, 500));
     
-    auto c = random_numbers.connect(request.fiber);
     std::vector<decltype(random_numbers.all_fields())> numbers(N);
-    for (int i = 0; i < N; i++)
-      numbers[i] = *c.find_one(s::id = 1 + rand() % 10000);
+    {
+      auto c = random_numbers.connect(request.fiber);
+      for (int i = 0; i < N; i++)
+        numbers[i] = *c.find_one(s::id = 1 + rand() % 10000);
+    }
 
     response.write_json(numbers);
+  };
+
+  random_numbers.connect().forall([&] (const auto& number) {
+    world_cache.insert(metamap_clone(number));
+  });
+
+  my_api.get("/cached-worlds") = [&](http_request& request, http_response& response) {
+    std::string N_str = request.get_parameters(s::N = std::optional<std::string>()).N.value_or("1");
+    int N = atoi(N_str.c_str());
+    
+    N = std::max(1, std::min(N, 500));
+
+    std::vector<int> ids(N);
+    for (int i = 0; i < N; i++)
+      ids[i] = 1 + rand() % 10000;
+    response.write_json(world_cache.get_array(ids));
   };
 
   my_api.get("/updates") = [&](http_request& request, http_response& response) {
@@ -159,15 +213,16 @@ int main(int argc, char* argv[]) {
     typedef decltype(fortunes.all_fields()) fortune;
     std::vector<fortune> table;
 
-    auto c = fortunes.connect(request.fiber);
-    c.forall([&] (const auto& f) { table.emplace_back(metamap_clone(f)); });
+    {
+      auto c = fortunes.connect(request.fiber);
+      c.forall([&] (const auto& f) { table.emplace_back(metamap_clone(f)); });
+    }
     table.emplace_back(0, "Additional fortune added at request time.");
 
     std::sort(table.begin(), table.end(),
               [] (const fortune& a, const fortune& b) { return a.message < b.message; });
 
-    char b[100000];
-    li::output_buffer ss(b, sizeof(b));
+    li::growing_output_buffer ss;
  
     ss << "<!DOCTYPE html><html><head><title>Fortunes</title></head><body><table><tr><th>id</th><th>message</th></tr>";
     for(auto& f : table)
