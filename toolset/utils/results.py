@@ -213,7 +213,11 @@ class Results:
         col_name="times_"+collection
         client = pymongo.MongoClient(self.config.mongo_url, self.config.mongo_port)
         col = client[self.config.mongo_database][col_name]
-        col.insert(self.__to_jsonable())
+        # col.insert(self.__to_jsonable())
+        toRet = self.__to_jsonable()
+        for x,y in toRet.items(): 
+            toRet[x]= {key.replace(".","_") : value for key,value in y.items()} if type(y) is dict else y
+        col.insert(toRet)
         client.close()
 
 

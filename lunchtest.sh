@@ -11,6 +11,9 @@ setclients()
 clients=`cat /root/client_addrs.txt `
 setclients $clients
 
+
+measureit()
+{
 docker run \
     --rm \
   --network=host \
@@ -21,7 +24,9 @@ docker run \
   --client-host $client_host \
   --network-mode host \
   --duration 20 \
-  --concurrency-levels 10 20 50 100 150 200 300 400 512 \ 
-  --test-lang $@ 
+  --mode verify \
+  --test-dir $@ 
+}
 
-
+l=`cat names.txt`
+measureit $l
