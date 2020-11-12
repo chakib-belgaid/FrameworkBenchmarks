@@ -5,7 +5,7 @@ setclients()
 {
     server_host=$2
     client_host=$3
-    database_host=$3
+    database_host=$4
 }
 
 clients=`cat /root/client_addrs.txt `
@@ -23,6 +23,5 @@ docker run \
   --network-mode host \
   --network-mode host \
   --duration 20 \
-  --type db  query \
-  --concurrency-levels 10 20 50 100 150 200 300 400 512 \
-  --test $@
+  --mode verify \
+  --test-dir $@

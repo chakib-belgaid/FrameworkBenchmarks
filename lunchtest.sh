@@ -21,8 +21,7 @@ docker run \
   --client-host $client_host \
   --network-mode host \
   --duration 20 \
-  --mode verify \
-  --concurrency-levels 10 20 50 100 150 200 300 400 512 \
-  --test-lang PHP
+  --concurrency-levels 10 20 50 100 150 200 300 400 512 \ 
+  --test-lang $@ 
 
 

@@ -187,12 +187,12 @@ def main(argv=None):
     parser.add_argument(
         '--query-levels',
         nargs='+',
-        default=[1, 5, 10, 15, 20],
+        default=[1, 5, 10, 15, 20, 30 , 50 ],
         help='List of query levels to benchmark')
     parser.add_argument(
         '--cached-query-levels',
         nargs='+',
-        default=[1, 10, 20, 50, 100],
+        default=[1, 10, 20, 50, 100 , 250 , 500],
         help='List of cached query levels to benchmark')
 
     # Network options
