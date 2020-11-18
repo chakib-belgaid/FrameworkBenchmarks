@@ -27,6 +27,7 @@ class DockerHelper:
         self.database = docker.DockerClient(
             base_url=self.benchmarker.config.database_docker_host)
 
+
     def run_smartwatts_formula(self,collection='test10'):
         '''
         transform the rapl data into power
@@ -115,6 +116,7 @@ class DockerHelper:
         with open(build_log_file, 'w') as build_log:
             try:
                 client = docker.APIClient(base_url=base_url)
+                
                 output = client.build(
                     path=path,
                     dockerfile=dockerfile,
