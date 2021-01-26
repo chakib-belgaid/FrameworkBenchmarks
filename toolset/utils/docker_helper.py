@@ -19,6 +19,7 @@ mem_limit = int(round(virtual_memory().total * .95))
 class DockerHelper:
     def __init__(self, benchmarker=None):
         self.benchmarker = benchmarker
+
         self.config=self.benchmarker.config
         self.client = docker.DockerClient(
             base_url=self.benchmarker.config.client_docker_host)
@@ -26,6 +27,9 @@ class DockerHelper:
             base_url=self.benchmarker.config.server_docker_host)
         self.database = docker.DockerClient(
             base_url=self.benchmarker.config.database_docker_host)
+        # self.client.login(username="chakibmed001",password="chakib141404"  , reauth=True , email="mohammed-chakib.belgaid@inria.fr")
+        # self.server.login(username="chakibmed001",password="chakib141404"  , reauth=True , email="mohammed-chakib.belgaid@inria.fr")
+        # self.database.login(username="chakibmed001",password="chakib141404", reauth=True , email="mohammed-chakib.belgaid@inria.fr")
 
     def run_smartwatts_formula(self,collection='test10'):
         '''
@@ -115,6 +119,7 @@ class DockerHelper:
         with open(build_log_file, 'w') as build_log:
             try:
                 client = docker.APIClient(base_url=base_url)
+                # client.login(username="chakibmed",password="chakib141404")
                 output = client.build(
                     path=path,
                     dockerfile=dockerfile,

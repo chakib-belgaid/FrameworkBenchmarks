@@ -210,13 +210,25 @@ class Results:
         '''
         Attempts to upload the results.json to a mongodb base
         '''
+
+        def change_dots(data):
+            for key in data.keys():
+                x= key.replace(".","_")
+                if x == key :
+                    data[x]=data[key]
+                    del(data[key])
+                if type(data[key]) == dict:
+                    get_simple_keys(data[key])
+            return data
+
         col_name="times_"+collection
         client = pymongo.MongoClient(self.config.mongo_url, self.config.mongo_port)
         col = client[self.config.mongo_database][col_name]
         # col.insert(self.__to_jsonable())
         toRet = self.__to_jsonable()
-        for x,y in toRet.items(): 
-            toRet[x]= {key.replace(".","_") : value for key,value in y.items()} if type(y) is dict else y
+        toRet= change_dots(toRet)
+        # for x,y in toRet.items(): 
+            # toRet[x]= {key.replace(".","_") : value for key,value in y.items()} if type(y) is dict else y
         col.insert(toRet)
         client.close()
 

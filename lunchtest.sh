@@ -24,9 +24,19 @@ docker run \
   --client-host $client_host \
   --network-mode host \
   --duration 20 \
-  --mode verify \
+  --type all \
   --test-dir $@ 
 }
 
-l=`cat names.txt`
-measureit $l
+
+# measureit $l
+
+l=`cat names.txt | xargs -n 40` 
+
+for i in `ls names` ; 
+do 
+  l=`cat names/$i`
+  measureit $l
+  echo $i >> done.txt
+  sleep 10
+done 
