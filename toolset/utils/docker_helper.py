@@ -31,6 +31,7 @@ class DockerHelper:
         # self.server.login(username="chakibmed001",password="chakib141404"  , reauth=True , email="mohammed-chakib.belgaid@inria.fr")
         # self.database.login(username="chakibmed001",password="chakib141404", reauth=True , email="mohammed-chakib.belgaid@inria.fr")
 
+
     def run_smartwatts_formula(self,collection='test10'):
         '''
         transform the rapl data into power
@@ -119,7 +120,7 @@ class DockerHelper:
         with open(build_log_file, 'w') as build_log:
             try:
                 client = docker.APIClient(base_url=base_url)
-                # client.login(username="chakibmed",password="chakib141404")
+                
                 output = client.build(
                     path=path,
                     dockerfile=dockerfile,
