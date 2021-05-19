@@ -39,30 +39,38 @@ impl Future for App {
             return Poll::Ready(Ok(()));
         }
 
-        let mut updated = false;
+        let read = this.state.read();
+        let write = this.state.write();
         loop {
-            match this.state.decode_item(&this.codec) {
+            match read.decode(&this.codec) {
                 Ok(Some((req, _))) => {
-                    match req.path() {
-                        "/json" => this.state.with_write_buf(|buf| {
-                            buf.extend_from_slice(JSON);
-                            this.codec.set_date_header(buf);
-                            Message {
-                                message: "Hello, World!",
+                    write.with_buf(|buf| {
+                        // make sure we've got room
+                        let remaining = buf.capacity() - buf.len();
+                        if remaining < 1024 {
+                            buf.reserve(65535 - remaining);
+                        }
+
+                        match req.path() {
+                            "/json" => {
+                                buf.extend_from_slice(JSON);
+                                this.codec.set_date_header(buf);
+                                Message {
+                                    message: "Hello, World!",
+                                }
+                                .to_bytes_mut(buf);
                             }
-                            .to_bytes_mut(buf);
-                        }),
-                        "/plaintext" => this.state.with_write_buf(|buf| {
-                            buf.extend_from_slice(PLAIN);
-                            this.codec.set_date_header(buf);
-                            buf.extend_from_slice(BODY);
-                        }),
-                        _ => this.state.with_write_buf(|buf| {
-                            buf.extend_from_slice(HTTPNFOUND);
-                            buf.extend_from_slice(HDR_SERVER);
-                        }),
-                    }
-                    updated = true;
+                            "/plaintext" => {
+                                buf.extend_from_slice(PLAIN);
+                                this.codec.set_date_header(buf);
+                                buf.extend_from_slice(BODY);
+                            }
+                            _ => {
+                                buf.extend_from_slice(HTTPNFOUND);
+                                buf.extend_from_slice(HDR_SERVER);
+                            }
+                        }
+                    });
                 }
                 Ok(None) => break,
                 _ => {
@@ -71,13 +79,10 @@ impl Future for App {
                 }
             }
         }
-        if updated {
-            this.state.dsp_restart_write_task();
-        }
-        if !this.state.is_read_ready() {
-            this.state.dsp_read_more_data(cx.waker());
+        if read.is_ready() {
+            this.state.register_dispatcher(cx.waker());
         } else {
-            this.state.dsp_register_task(cx.waker());
+            read.wake(cx.waker())
         }
         Poll::Pending
     }
@@ -92,7 +97,7 @@ async fn main() -> io::Result<()> {
         .backlog(1024)
         .bind("techempower", "0.0.0.0:8080", || {
             fn_service(|io: TcpStream| {
-                let state = State::new().disconnect_timeout(0);
+                let state = State::with_params(65535, 65535, 1024, 0);
                 let io = Rc::new(RefCell::new(io));
                 ntex::rt::spawn(ReadTask::new(io.clone(), state.clone()));
                 ntex::rt::spawn(WriteTask::new(io, state.clone()));
